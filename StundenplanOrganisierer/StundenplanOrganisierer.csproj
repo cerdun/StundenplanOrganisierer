@@ -50,6 +50,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Fehlerfenster.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Fehlerfenster.Designer.cs">
+      <DependentUpon>Fehlerfenster.cs</DependentUpon>
+    </Compile>
     <Compile Include="Interface.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -58,6 +64,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Fehlerfenster.resx">
+      <DependentUpon>Fehlerfenster.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Interface.resx">
       <DependentUpon>Interface.cs</DependentUpon>
     </EmbeddedResource>

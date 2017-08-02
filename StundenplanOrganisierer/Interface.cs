@@ -19,12 +19,29 @@ namespace StundenplanOrganisierer
         public StuPlOrgInterface()
         {
             InitializeComponent();
-            loadpdf();
+            //loadpdf();
             if (this.WindowState == FormWindowState.Minimized)
             {
                 this.WindowState = FormWindowState.Normal;
             }
 
+            try
+            {
+                StreamReader file = new StreamReader(@"Konfiguration.txt");
+                string line;
+                DB.Text = "";
+                while ((line = file.ReadLine()) != null)
+                {
+                    DB.Text = DB.Text + line + "\r\n";
+                }
+            }
+            catch (FileNotFoundException e)
+            {
+                Fehlerfenster fenster = new Fehlerfenster("Es wurde keine Konfiguration gefunden\r\n\r\nEs sollte sich eine Konfiguration.txt neben der .exe befinden!\r\n\r\nAndernfalls wird die Standardkonfiguration verwendet");
+                fenster.Show();
+            }
+
+            Pfad.Text = @"C:\Users\cerdun\ownCloud.ldkf\C# Stuff\Neuer Ordner\2s_ges.pdf";
             this.Activate();
         }
 
@@ -38,10 +55,10 @@ namespace StundenplanOrganisierer
         {
             foreach (var group in names)
             {
-                System.IO.Directory.CreateDirectory(path + "/" + group);
+                Directory.CreateDirectory(path + "/" + group);
 
             }
-            System.IO.Directory.CreateDirectory(path + "/" + "Unzugeordnet");
+            Directory.CreateDirectory(path + "/" + "Unzugeordnet");
         }
         /// <summary>
         /// Speichert einen String in eine Pdf
@@ -97,9 +114,9 @@ namespace StundenplanOrganisierer
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
             openFileDialog1.Filter = "Pdf Files|*.pdf";
             openFileDialog1.Title = "Select a Pdf File";
-            if (openFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                System.IO.StreamReader sr = new System.IO.StreamReader(openFileDialog1.FileName);
+                StreamReader sr = new StreamReader(openFileDialog1.FileName);
                 sr.Close();
             }
             Pfad.Text = openFileDialog1.FileName;       //Speicherort des Pfades
@@ -146,12 +163,35 @@ namespace StundenplanOrganisierer
             PdfReader reader = new PdfReader(loc + Source);
             int zahl = reader.NumberOfPages;
 
-            for (int i = 1; i <= zahl; i++)
+            for (int i = 1; i <= 1; i++)
             {
                 from.Text = Convert.ToString(i)+" von "+ Convert.ToString(zahl);
                 progressBar1.Value = i / zahl * 100;
                 string currentText = Encoding.UTF8.GetString(Encoding.Convert(Encoding.Default, Encoding.UTF8, reader.GetPageContent(i)));
 
+
+
+                Console.WriteLine(currentText.IndexOf("DBM"));
+                if (currentText.IndexOf("DBM")!=-1)
+                {
+                    
+                    string a = currentText.Substring(currentText.IndexOf("DBM") - 1, currentText.IndexOf(@"EMC", currentText.IndexOf("DBM"))-currentText.IndexOf("DBM")+1);
+                    string c = "";
+                    Console.WriteLine("\n"+a+"\n");
+                    while (a.Contains("(")&&a.Contains(")"))
+                    {
+                        Console.WriteLine(a + "\n");
+                        string b = a.Substring(a.IndexOf("(") + 1, a.IndexOf(")") - a.IndexOf("(") - 1);
+                        Console.WriteLine(b + "\n");
+                        a=a.Remove(0, a.IndexOf(")")+1);
+                        c = c + b;
+                        Console.WriteLine("---------" + c);
+                    }
+                }
+                
+                
+
+                /*
                 bool success = false;
                 foreach (var tag in tags)
                 {
@@ -169,8 +209,9 @@ namespace StundenplanOrganisierer
                 }
 
                 CopySite(loc + Source, i, output);
+                */
             }
-            processDirectory(loc);
+            //processDirectory(loc);
             
         }
         
