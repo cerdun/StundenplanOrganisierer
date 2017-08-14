@@ -120,4 +120,31 @@
   <metadata name="openFileDialog1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
+  <data name="DB.Text" xml:space="preserve">
+    <value>DBM Maschinenbau
+DBW Werkstoffwissenschaft
+DBV VerfahrensundNaturstofftechnik
++DMB DMaschinenbau
++BMB BMaschinenbau
++DWW DWerkstoffwissenschaft
++BWW BWerkstoffwissenschaft
++DVN DVerfahrensundNaturstofftechnik
++BVN VerfahrensundNaturstofftechnik
+#AKM AllgemeinerUndKonstruktiverMaschinenbau
+#ET Energietechnik
+#KS Kraftfahrzeug-UndSchienfahrzeugtechnik
+#LB Leichtbau
+#LRT Luft-UndRaumfahrttechnik
+#PT Produktionstechnik
+#SM SimulationsmethodenDesMaschinenbaus
+#VTM Verarbeitungsmaschinen-UndTextimaschinenbau
+#BV Bioverfahrenstechnik
+#CT Chemie-Ingenieurwesen
+#HF Holz-UndFaserwerkstofftechnik
+#LT Lebensmitteltechnik
+#VT AllgemeineVerfahrenstechnik</value>
+  </data>
+  <metadata name="DBToolTip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>184, 17</value>
+  </metadata>
 </root>
