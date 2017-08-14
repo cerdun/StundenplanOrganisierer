@@ -50,6 +50,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeFile1.cs" />
+    <Compile Include="functions.cs" />
     <Compile Include="Fehlerfenster.cs">
       <SubType>Form</SubType>
     </Compile>

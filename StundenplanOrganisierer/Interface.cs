@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using iTextSharp.text;
@@ -16,6 +14,8 @@ namespace StundenplanOrganisierer
 {
     public partial class StuPlOrgInterface : Form
     {
+        functions _F = new functions();
+
         public StuPlOrgInterface()
         {
             InitializeComponent();
@@ -44,115 +44,31 @@ namespace StundenplanOrganisierer
                 fenster.Show();
             }
 
-            ToolTip toolTip1 = new ToolTip();
+            ToolTip toolTip1 = new ToolTip();           //Tooltip Stuff
             toolTip1.AutoPopDelay = 15000;
             toolTip1.InitialDelay = 700;
             toolTip1.ReshowDelay = 500;
-            toolTip1.SetToolTip(button1, "zerteilt die PDF in einzelne Seiten \r\n und sortiert sie nach den angegebenen Namen neu");
+            toolTip1.SetToolTip(button1, "zerteilt die PDF(s) in einzelne Seiten \r\n und sortiert sie nach den angegebenen Namen neu");
             toolTip1.SetToolTip(DB, "Tags und Klarnamen getrennt durch ein Leerzeichen\r\nDie Richtungen im Hauptstudium sind durch '+' gekennzeichnet, die Spezialisierungen mit '#'");
             toolTip1.SetToolTip(load, "lädt eine neue PDF");
             toolTip1.SetToolTip(Pfad, "Ort der aktuellen PDF");
-            toolTip1.SetToolTip(OverrideBox, "Sollen PDFs, die bereits existieren überschrieben oder ergänzt werden?");
+            toolTip1.SetToolTip(OverrideBox, "Sollen PDFs, die bereits existieren, überschrieben oder ergänzt werden?");
+            toolTip1.SetToolTip(ziel, "Ort, an dem die fertigen Dateien (in Unterordnern) gespeichert werden");
+            toolTip1.SetToolTip(save, "Ändert den Speicherort");
+            toolTip1.SetToolTip(checkBoxAllPdf, "Sollen alle PDFs am Speicherort der ausgewählten Datei aufgeteilt werden?");
+            toolTip1.SetToolTip(snippet, "Zeigt den ausgewählten Ausschnitt von der ersten Seite der ausgewählten Pdf an");
+            toolTip1.SetToolTip(opendesti, "Öffnet den Zielordner im Explorer");
 
             Loadpdf();
-            
+
             this.Activate();
         }
 
-
-        /// <summary>
-        /// erstellt neue Ordner für eine Liste von Namen
-        /// </summary>
-        /// <param name="names">Ordnernamen</param>
-        /// <param name="path">Zielpfad</param>
-        public void CreateFolders(List<string> names, string path)
-        {
-            foreach (var group in names)
-            {
-                Directory.CreateDirectory(path + "/" + group);
-            }
-            Directory.CreateDirectory(path + "/" + "Unzugeordnet");
-        }
-
-        /// <summary>
-        /// erstellt einen Ordner
-        /// </summary>
-        /// <param name="names">Ordnernamen</param>
-        /// <param name="path">Zielpfad</param>
-        public void CreateFolder(string name, string path)
-        {
-            Directory.CreateDirectory(path + "/" + name);
-        }
-
-        /// <summary>
-        /// Speichert einen String in eine existierende Pdf
-        /// </summary>
-        /// <param name="inputPdf">Original</param>
-        /// <param name="pageSelection">Reichweite, z.B. "1-4" oder "1,3-4"</param>
-        /// <param name="outputPdf">Zielpfad der Kopie</param>
-        public void SaveToPdf(string inputPdf, int pageSelection, string outputPdf)
-        {
-            PdfReader reader = new PdfReader(inputPdf);
-            PdfReader reader1 = new PdfReader(outputPdf);
-            Document doc = new Document(reader.GetPageSizeWithRotation(1));
-            PdfCopy copy = new PdfCopy(doc, new FileStream(outputPdf+"1",FileMode.Append));
-            doc.Open();
-            for (int i = 1; i <= reader1.NumberOfPages; i++)
-            {
-                copy.AddPage(copy.GetImportedPage(reader1, i));
-            }
-            copy.AddPage(copy.GetImportedPage(reader, pageSelection));
-            reader.Close();
-            reader1.Close();
-            doc.Close();
-            File.Delete(outputPdf);
-            File.Move(outputPdf + "1", outputPdf);
-        }
-
-        /// <summary>
-        /// Speichert bestimmte Seiten einer Pdf in eine Kopie
-        /// </summary>
-        /// <param name="inputPdf">Original</param>
-        /// <param name="pageSelection">Reichweite, z.B. "1-4" oder "1,3-4"</param>
-        /// <param name="outputPdf">Zielpfad der Kopie</param>
-        public void CopySite(string inputPdf, int pageSelection, string outputPdf)
-        {
-            if (Directory.GetFiles(outputPdf.Substring(0, outputPdf.LastIndexOf("\\"))).Contains(outputPdf)
-                &&!OverrideBox.Checked)
-            {
-                Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++++++HÄ?");
-                SaveToPdf(inputPdf, pageSelection, outputPdf);
-                return;
-            }
-
-            PdfReader reader = new PdfReader(inputPdf);
-            FileStream fs = new FileStream(outputPdf, FileMode.Create);
-            Document doc = new Document(reader.GetPageSizeWithRotation(1));
-            PdfCopy copy = new PdfCopy(doc, fs);
-            doc.Open();
-            copy.AddPage(copy.GetImportedPage(reader, pageSelection));
-            doc.Close();
-        }
-        /// <summary>
-        /// löscht alle leeren Ordner und Unterordner an einem Ort
-        /// </summary>
-        /// <param name="startLocation">Zielordner</param>
-        private static void ProcessDirectory(string startLocation)
-        {
-            foreach (var directory in Directory.GetDirectories(startLocation))
-            {
-                ProcessDirectory(directory);
-                if (Directory.GetFiles(directory).Length == 0 &&
-                    Directory.GetDirectories(directory).Length == 0)
-                {
-                    Directory.Delete(directory, false);
-                }
-            }
-        }
         /// <summary>
         /// öffnet ein Dialogfenster, in dem eine Pdf ausgewählt werden kann
         /// </summary>
-        private void Loadpdf ()
+        /// <returns>Ort der Pdf</returns>
+        private string Loadpdf ()
         {
             OpenFileDialog openFileDialog1 = new OpenFileDialog()
             {
@@ -163,210 +79,57 @@ namespace StundenplanOrganisierer
             {
                 StreamReader sr = new StreamReader(openFileDialog1.FileName);
                 sr.Close();
+                return openFileDialog1.FileName;
             }
-            Pfad.Text = openFileDialog1.FileName;       //Speicherort des Pfades
+            return ""; 
         }
 
         /// <summary>
-        /// Magie
+        /// Zerteilen der Pdf(s)
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void Button1_Click(object sender, EventArgs e)
         {
-            if (Pfad.Text.Length == 0)
+            try
             {
-                return;
-            }
-            DB.ReadOnly = true;     //sperrt Datenbank
-
-            string loc = Pfad.Text;     
-            string Source = loc.Substring(loc.LastIndexOf(@"\")+1); //bestimmt den Pfad, an dem die Pdf liegt
-            loc = loc.Remove(loc.LastIndexOf(@"\")+1);      //bestimmt den Namen der Pdf
-
-            Dictionary<string, string> haupt = new Dictionary<string, string>();
-            Dictionary<string, string> grund = new Dictionary<string, string>();
-            Dictionary<string, string> spez = new Dictionary<string, string>();
-
-
-            string[] lines = DB.Text.Split('\n');       //übernimmt den Text aus dem Eingabefeld
-            string lin;
-            foreach (var line in lines)
-            {
-                if (line.Contains(" "))
+                string time = DateTime.Now.ToString().Replace(" ", "_").Replace(":", ".");
+                Console.WriteLine(time);
+                if (checkBoxAllPdf.Checked)
                 {
-                    Console.Write(line);
-                    lin = line.Replace("\r\n", "").Replace("\n", "").Replace("\r", "");     //entfernt alle Umbrüche
-
-                    if (lin.StartsWith("#"))
+                    foreach (var file in Directory.GetFiles(Pfad.Text.Substring(0, Pfad.Text.LastIndexOf(@"\") + 1)))
                     {
-                        try
+                        if (file.EndsWith(".pdf"))
                         {
-                            spez.Add(lin.Substring(1, lin.IndexOf(' ')-1), lin.Substring(lin.IndexOf(' ') + 1));
-                        }
-                        catch (ArgumentException)
-                        {
-                            Console.WriteLine("Es gibt bereits " + lin.Substring(0, lin.IndexOf(' ')));
+                            zerteilen(file, time);
                         }
                     }
-                    else if (lin.StartsWith("+"))
-                    {
-                        try
-                        {
-                            haupt.Add(lin.Substring(1, lin.IndexOf(' ') - 1), lin.Substring(lin.IndexOf(' ') + 1));
-                        }
-                        catch (ArgumentException)
-                        {
-                            Console.WriteLine("Es gibt bereits " + lin.Substring(1, lin.IndexOf(' ') - 1));
-                        }
-                    }
-                    else
-                    {
-                        try
-                        {
-                            grund.Add(lin.Substring(0, lin.IndexOf(' ')), lin.Substring(lin.IndexOf(' ') + 1));
-                        }
-                        catch (ArgumentException)
-                        {
-                            Console.WriteLine("Es gibt bereits " + lin.Substring(1, lin.IndexOf(' ') - 1));
-                        }
-                    }
+                    return;
                 }
+                zerteilen(Pfad.Text, time);
             }
-
-            var hauptlist = haupt.Keys.ToList();
-            var grundlist = grund.Keys.ToList();
-            var spezlist = spez.Keys.ToList();
-
-            Console.WriteLine("----------------------------------------------------");
-            spezlist.Sort(delegate(string x,string y) {
-                if (x.Length == 0 && y.Length == 0) return 0;
-                else if (x.Length == 0) return -1;
-                else if (y.Length == 0) return 1;
-                else return y.Length.CompareTo(x.Length);
-            });
-            Console.WriteLine("Spezialisierungen:");
-            foreach (var item in spezlist)
+            catch (Exception)
             {
-                Console.Write(" "+item);
+                MessageBox.Show("Etwas ist schief gelaufen");
             }
-
-            grundlist.Sort(delegate (string x, string y) {
-                if (x.Length == 0 && y.Length == 0) return 0;
-                else if (x.Length == 0) return -1;
-                else if (y.Length == 0) return 1;
-                else return y.Length.CompareTo(x.Length);
-            });
-            Console.WriteLine("\r\nGrundstudium:");
-            foreach (var item in grundlist)
-            {
-                Console.Write(" "+item);
-            }
-
-            hauptlist.Sort(delegate (string x, string y) {
-                if (x.Length == 0 && y.Length == 0) return 0;
-                else if (x.Length == 0) return -1;
-                else if (y.Length == 0) return 1;
-                else return y.Length.CompareTo(x.Length);
-            });
-            Console.WriteLine("\r\nHauptstudium:");
-            foreach (var item in hauptlist)
-            {
-                Console.Write(" "+item);
-            }
-            Console.WriteLine("\r\n----------------------------------------------------");
-            string output = string.Empty;
-
-            CreateFolder("Unzugeordnet", loc);
-
-            PdfReader reader = new PdfReader(loc + Source);
-            int zahl = reader.NumberOfPages;
-
-            for (int aktuelleSeite = 1; aktuelleSeite <= zahl; aktuelleSeite++)
-            {
-                from.Text = Convert.ToString(aktuelleSeite)+" von "+ Convert.ToString(zahl);
-                progressBar.Value = aktuelleSeite / zahl * 100;
-
-                string currentText = Encoding.UTF8.GetString(Encoding.Convert(Encoding.Default, Encoding.UTF8, reader.GetPageContent(aktuelleSeite)));
-
-                string part = currentText.Substring(currentText.Length / 100 * Convert.ToInt32(positionlabel.Text.Substring(0, positionlabel.Text.IndexOf("-"))),
-                    currentText.Length/100*Convert.ToInt32(positionlabel.Text.Substring(positionlabel.Text.IndexOf("-")+1, positionlabel.Text.Length - positionlabel.Text.IndexOf("-")-1)));   //String, der den Tag und den folgenden Block übernimmt
-
-                string clear = "";
-                while (part.Contains("(")
-                    && (part.Contains(")Tj") || part.Contains(")]TJ")))      //solange chunks vorhanden sind
-                {
-                    int aufind = part.IndexOf("(");
-                    int zuind = part.IndexOf(")", aufind);     //nimmt sich das auf "(" folgende ")"
-                    clear = clear + part.Substring(aufind + 1, zuind - aufind - 1);        //nimmt sich den ersten Chunk -> (...)
-                    part = part.Remove(0, zuind + 1);        // löscht den ersten chunk
-                }
-                Console.WriteLine(clear);
-                
-
-                bool success = false;
-
-                foreach (var tag in grundlist)       //überprüft auf die Grundstudiums Tags
-                {
-                    int tagindex = clear.IndexOf(tag);
-                    if (tagindex!=-1)       //enthält tag
-                    {
-                        Console.WriteLine("GRUNDSTUDIUM");
-                        string plaintext = clear.Substring(tagindex, clear.IndexOf(" ", tagindex) - tagindex);   //String, der den Tag und den folgenden Block übernimmt
-
-                        int id = grundlist.IndexOf(tag);
-                        CreateFolder(grund[tag], loc);
-                        output = loc + grund[tag] + "\\" + plaintext + ".pdf";
-                        success = true;
-                    }
-                }
-
-                foreach (var tag in hauptlist)       //Das Gleiche für das Hauptstudium, ein bisschen anders
-                {
-                    int tagindex = clear.IndexOf(tag);
-                    if (tagindex != -1)       //enthält tag
-                    {
-                        Console.WriteLine("HAUPTSTUDIUM");
-                        string plaintext = clear.Substring(tagindex, clear.IndexOf(" ",tagindex)-tagindex);   //String, der den Tag und den folgenden Block übernimmt
-                        
-                        int id = hauptlist.IndexOf(tag);
-                        CreateFolder(haupt[tag], loc);
-                        output = loc + haupt[tag] + "\\" + plaintext + ".pdf";
-                        
-                        foreach (var speztag in spezlist)
-                        {
-                            if (plaintext.Remove(plaintext.IndexOf(tag),tag.Length).Contains(speztag))      //Text ohne Tag
-                            {
-                                Console.WriteLine("SPEZIALISIERUNG");
-                                Console.WriteLine(speztag);
-                                CreateFolder(spez[speztag], loc+ "\\" + haupt[tag]);
-                                output = loc + haupt[tag] + "\\" + spez[speztag] + "\\" + plaintext + ".pdf";
-                                break;
-                            }
-                        }
-
-                        success = true;
-                    }
-                }
-
-
-                if (success == false)       //unzugeordnete Dateien
-                {
-                    output = loc + "Unzugeordnet\\" + "Plan" + aktuelleSeite.ToString("D2") + ".pdf";
-                }
-
-                CopySite(loc + Source, aktuelleSeite, output);      //speichert die fertige Datei
-
-            }
-            ProcessDirectory(loc);      //räumt auf
-            DB.ReadOnly = false;        //gibt Datenbank wieder frei
         }
-        
+
+        /// <summary>
+        /// Laden einer Pdf
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Load_Click(object sender, EventArgs e)
         {
-            Loadpdf();
+            Pfad.Text = Loadpdf();
+            ziel.Text = Pfad.Text.Substring(0, Pfad.Text.LastIndexOf(@"\"));
         }
 
+        /// <summary>
+        /// Einstellen der Position
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Position_Scroll(object sender, EventArgs e)
         {
             switch (Position.Value)
@@ -400,102 +163,286 @@ namespace StundenplanOrganisierer
                     break;
             }
         }
-    }
-}
+
+        /// <summary>
+        /// Ändern des Speicherorts
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void save_Click(object sender, EventArgs e)
+        {
+            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+            {
+                ziel.Text = folderBrowserDialog1.SelectedPath;
+            }
+        }
+
+        /// <summary>
+        /// irgendwas mit Magie
+        /// </summary>
+        /// <param name="filename">Ausgangsdatei</param>
+        private void zerteilen(string Source, string time)
+        {
+            if (!Directory.Exists(ziel.Text)||!File.Exists(Source))
+            {
+                MessageBox.Show("Ungültiger Pfad");
+                return;
+            }
+
+            DB.ReadOnly = true;     //sperrt Datenbank
+            string loc = ziel.Text + "\\" + time + "\\";      //bestimmt den Ort der Ziel Pdf
+
+            Dictionary<string, string> haupt = new Dictionary<string, string>();
+            Dictionary<string, string> grund = new Dictionary<string, string>();
+            //Dictionary<string, string> spez = new Dictionary<string, string>();     //optional für Sortierung nach Spezialisierung
 
 
-
-
-/*
-                int zahl = pdfReader.NumberOfPages + 1;
-                for (int s = 1; s < zahl; s++)
+            string[] lines = DB.Text.Split('\n');       //übernimmt den Text aus dem Eingabefeld
+            string lin;
+            Console.WriteLine("----------------------------------------------------");
+            foreach (var line in lines)
+            {
+                if (line.Contains(" "))
                 {
-                    String ss = Convert.ToString(s);
-                    Console.WriteLine(ss);
-                    pdfReader.SelectPages("3-4");
-                    var newFileStream = new FileStream(pfad + "/" + nameneu + s + ".pdf", FileMode.Create, FileAccess.Write);
-                    var stamper = new PdfStamper(pdfReader, newFileStream);
-                    stamper.Close();
+                    Console.Write(line);
+                    lin = line.Replace("\r\n", "").Replace("\n", "").Replace("\r", "");     //entfernt alle Umbrüche
+
+                    if (lin.StartsWith("+"))
+                    {
+                        try
+                        {
+                            haupt.Add(lin.Substring(1, lin.IndexOf(' ') - 1), lin.Substring(lin.IndexOf(' ') + 1));
+                        }
+                        catch (ArgumentException)
+                        {
+                            Console.WriteLine("Es gibt bereits " + lin.Substring(1, lin.IndexOf(' ') - 1));
+                        }
+                    }
+                    /*
+                    else if (lin.StartsWith("#"))
+                    {
+                        try
+                        {
+                            spez.Add(lin.Substring(1, lin.IndexOf(' ') - 1), lin.Substring(lin.IndexOf(' ') + 1));
+                        }
+                        catch (ArgumentException)
+                        {
+                            Console.WriteLine("Es gibt bereits " + lin.Substring(0, lin.IndexOf(' ')));
+                        }
+                    }*/
+                    else
+                    {
+                        try
+                        {
+                            grund.Add(lin.Substring(0, lin.IndexOf(' ')), lin.Substring(lin.IndexOf(' ') + 1));
+                        }
+                        catch (ArgumentException)
+                        {
+                            Console.WriteLine("Es gibt bereits " + lin.Substring(1, lin.IndexOf(' ') - 1));
+                        }
+                    }
                 }
-                //Reader.Close();
-                pdfReader.Close();*/
+            }
+
+            var hauptlist = haupt.Keys.ToList();
+            var grundlist = grund.Keys.ToList();
+            //var spezlist = spez.Keys.ToList();
+
+            Console.WriteLine("----------------------------------------------------");
+            grundlist.Sort(delegate (string x, string y) {       //überschreibt Sortieralgorithmus
+                if (x.Length == 0 && y.Length == 0) return 0;   //leere Keys
+                else if (x.Length == 0) return -1;              //erster Key leer
+                else if (y.Length == 0) return 1;               //zweiter Key leer
+                else return y.Length.CompareTo(x.Length);       //Vergleich über Länge
+            });
+            Console.WriteLine("\r\nGrundstudium:");
+            foreach (var item in grundlist)
+                Console.Write(" " + item);
+            /*
+            spezlist.Sort(delegate (string x, string y) {
+                if (x.Length == 0 && y.Length == 0) return 0;
+                else if (x.Length == 0) return -1;
+                else if (y.Length == 0) return 1;
+                else return y.Length.CompareTo(x.Length);
+            });
+            Console.WriteLine("Spezialisierungen:");
+            foreach (var item in spezlist)
+                Console.Write(" " + item);
+            */
+            hauptlist.Sort(delegate (string x, string y) {
+                if (x.Length == 0 && y.Length == 0) return 0;
+                else if (x.Length == 0) return -1;
+                else if (y.Length == 0) return 1;
+                else return y.Length.CompareTo(x.Length);
+            });
+            Console.WriteLine("\r\nHauptstudium:");
+            foreach (var item in hauptlist)
+                Console.Write(" " + item);
+            Console.WriteLine("\r\n----------------------------------------------------");
+
+            string output = string.Empty;
+            
+            _F.CreateFolders("Unzugeordnet", loc);
+
+            PdfReader reader = new PdfReader(Source);
+            int zahl = reader.NumberOfPages;
+            //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            for (int aktuelleSeite = 1; aktuelleSeite <= zahl; aktuelleSeite++)
+            {
+                from.Text = Convert.ToString(aktuelleSeite) + " von " + Convert.ToString(zahl);
+                progressBar.Value = aktuelleSeite / zahl * 100;
+
+                string clear = _F.ClearText(Encoding.UTF8.GetString(Encoding.Convert(Encoding.Default, Encoding.UTF8, reader.GetPageContent(aktuelleSeite))), positionlabel.Text);
+                Console.WriteLine(clear);
 
 
-/*
-PdfReader reader = new PdfReader(pfad + "/" + name + ".pdf");
-AcroFields.Item field = reader.AcroFields.Fields["[STOP_HERE]"];
-if (field != null)
-{
-    int firstPage = reader.NumberOfPages + 1;
-    for (int index = 0; index < field.Size; index++)
-    {
-        int page = field.GetPage(index);
-        if (page > 0 && page < firstPage)
-            firstPage = page;
-    }
+                bool success = false;
 
-    if (firstPage <= reader.NumberOfPages)
-    {
-        reader.SelectPages("1-" + firstPage);
-        PdfStamper stamper = new PdfStamper(reader, new FileStream(pfad + "/" + nameneu + ".pdf", FileMode.Create, FileAccess.Write));
-        stamper.Close();
+                foreach (var tag in grundlist)       //überprüft auf die Grundstudiums Tags
+                {
+                    int tagindex = clear.IndexOf(tag);
+                    if (tagindex != -1)       //enthält tag
+                    {
+                        Console.Write("GRUNDSTUDIUM");
+                        string plaintext = clear.Substring(tagindex, clear.IndexOf(" ", tagindex) - tagindex);   //String, der den Tag und den folgenden Block übernimmt
+
+                        string group = plaintext.Remove(0, plaintext.LastIndexOf("-")+1);
+                        string semester = "semester"+plaintext.ElementAt(plaintext.IndexOfAny(new char[] { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' })).ToString();
+                        _F.CreateFolders(semester, loc);
+                        _F.CreateFolders(grund[tag], loc + "\\" + semester);
+                        output = loc + semester + "\\" + grund[tag] + "\\" + group + ".pdf";
+
+                        success = true;
+                    }
+                }
+
+                foreach (var tag in hauptlist)       //Das Gleiche für das Hauptstudium, ein bisschen anders
+                {
+                    int tagindex = clear.IndexOf(tag);
+                    if (tagindex != -1)       //enthält tag
+                    {
+                        Console.Write("HAUPTSTUDIUM");
+                        string plaintext = clear.Substring(tagindex, clear.IndexOf(" ", tagindex) - tagindex);   //String, der den Tag und den folgenden Block übernimmt
+
+                        string group = plaintext.Remove(0, plaintext.LastIndexOf("-") + 1);
+                        string semester = "semester" + plaintext.ElementAt(plaintext.IndexOfAny(new char[] { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' })).ToString();
+                        _F.CreateFolders(semester, loc);
+                        _F.CreateFolders(grund[tag], loc + "\\" + semester);
+                        output = loc + semester + "\\" + grund[tag] + "\\" + group + ".pdf";
+
+                        // Möglichkeit die Spezialisierungen in eigene Ordner zu speichern
+                        /*
+                        output = loc + haupt[tag] + "\\" + plaintext + ".pdf";
+                        foreach (var speztag in spezlist)
+                        {
+                            if (plaintext.Remove(plaintext.IndexOf(tag), tag.Length).Contains(speztag))      //Text ohne Tag
+                            {
+                                Console.WriteLine("SPEZIALISIERUNG");
+                                Console.WriteLine(speztag);
+                                _F.CreateFolders(spez[speztag], loc + "\\" + haupt[tag]);
+                                output = loc + haupt[tag] + "\\" + spez[speztag] + "\\" + plaintext + ".pdf";
+                                break;
+                            }
+                        }*/
+
+                        success = true;
+                    }
+                }
+
+
+                if (success == false)       //unzugeordnete Dateien
+                {
+                    output = loc + "Unzugeordnet\\" + Source.Substring(Source.LastIndexOf("\\"));
+                }
+
+                _F.CopySite(Source, aktuelleSeite, output, OverrideBox.Checked);      //speichert die fertige Datei
+                Console.WriteLine("");
+            }
+            
+            //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            _F.ProcessDirectory(loc);      //räumt auf
+            DB.ReadOnly = false;        //gibt Datenbank wieder frei
+        }
+
+        private void snippet_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                PdfReader reader = new PdfReader(Pfad.Text);
+
+                string clear = _F.ClearText(Encoding.UTF8.GetString(Encoding.Convert(Encoding.Default, Encoding.UTF8, reader.GetPageContent(1))), positionlabel.Text);
+
+                MessageBox.Show(clear);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Etwas ist schief gelaufen");
+            }
+        }
+
+        /// <summary>
+        /// Öffnet den Zielordner
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void opendesti_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Process.Start("explorer.exe", ziel.Text);           //einziger Grund, warum System.Diagnostics genutzt wird
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Etwas ist schief gelaufen");
+            }
+        }
+
+        /// <summary>
+        /// Benennt den zuletzt erstellten Ordner nach dem Semester um
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void rename_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                PdfReader reader = new PdfReader(Pfad.Text);
+                string clear = _F.ClearText(Encoding.UTF8.GetString(Encoding.Convert(Encoding.Default, Encoding.UTF8, reader.GetPageContent(1))), positionlabel.Text);
+                string sem = "";
+                int semind = -1;
+                if (clear.Contains("SoSe"))
+                {
+                    sem = "sommersemester_";
+                    semind = clear.IndexOf("SoSe");
+                }
+                else if (clear.Contains("WiSe"))
+                {
+                    sem = "wintersemester_";
+                    semind = clear.IndexOf("WiSe");
+                }
+                else
+                    return;
+
+                Console.WriteLine(semind);
+                int start = clear.IndexOf("20", semind);
+                string year = clear.Substring(start + 2, clear.IndexOf(" ", start) - start - 2);
+
+                string target = "";
+                string loc = ziel.Text;
+                foreach (var dir in Directory.GetDirectories(loc))
+                {
+                    if (!Directory.Exists(target)||Directory.GetCreationTime(target)<Directory.GetCreationTime(dir))
+                    {
+                        target = dir;
+                    }
+                }
+                Directory.Move(target, loc + "\\" + sem + year);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Etwas ist schief gelaufen");
+            }
+        }
     }
 }
-reader.Close();
-*/
-
-/*
-PdfWriter.GetInstance(doc, new FileStream(pfad + "/" + nameneu + ".pdf", FileMode.Create));
-doc.Open();
-Chunk c11 = new Chunk("Hier könnte ihre Werbung stehen");
-c11.SetUnderline(0.5f,-1.5f);
-for (int i = 1; i < 4; i++)
-{doc.Add(new Paragraph(c11));}
-doc.Close();
-*/
-
-/*          
-try
-{
-    PdfWriter.GetInstance(doc2, new FileStream(pfad + "/Blocks2.pdf", FileMode.Create));
-    doc2.Open();
-    string text = @"Infantry gameplay has long been at the heart of our development. 
-        Although it remains the backbone of our sandbox, we also recognise that there are several other avenues to explore. 
-        By expanding upon combined-arms content and features, we aim to create fascinating new opportunities for our community, 
-        and attract new players looking for a gateway to a massive military experience.
-        We're also looking to make longer-term investments (significant free updates, for everyone) that, we hope, 
-        help Arma 3 to continue to serve as platform for our community for years to come. To balance this effort - 
-        plainly speaking: to fund our project - we've prepared a number of premium packages and free updates, which translate our vision into real development.";
-    text = text.Replace(Environment.NewLine, String.Empty).Replace("  ", String.Empty);
-    iTextSharp.text.Font georgia = FontFactory.GetFont("georgia", 10f);
-    georgia.Color = iTextSharp.text.Color.GRAY;
-    iTextSharp.text.Font lightblue = FontFactory.GetFont("georgia", 8f);
-    lightblue.Color = iTextSharp.text.Color.BLUE;
-    iTextSharp.text.Font courier = FontFactory.GetFont("courier", 9f);
-    georgia.Color = iTextSharp.text.Color.GRAY;
-    Chunk beginning = new Chunk(text, georgia);
-    Phrase p1 = new Phrase(beginning);
-    Chunk c1 = new Chunk("\n\nYou can of course force a newline using \"", georgia);
-    Chunk c2 = new Chunk(@"\n", courier);
-    Chunk c3 = new Chunk("\" or ", georgia);
-    Chunk c4 = new Chunk("Environment", lightblue);
-    Chunk c5 = new Chunk(".NewLine", courier);
-    Chunk c6 = new Chunk(", or even ", georgia);
-    Chunk c7 = new Chunk("Chunk", lightblue);
-    Chunk c8 = new Chunk(".NEWLINE", courier);
-    Chunk c9 = new Chunk(" as part of the string you give a chunk.", georgia);
-    Phrase p2 = new Phrase();
-    p2.Add(c1); p2.Add(c2); p2.Add(c3); p2.Add(c4); p2.Add(c5); p2.Add(c6); p2.Add(c7); p2.Add(c8); p2.Add(c9);
-    Paragraph p = new Paragraph();
-    p.Add(p1);
-    p.Add(p2);
-    p.SetAlignment("Justify");
-    doc2.Add(p);
-}
-catch (DocumentException dex)
-{throw (dex);}
-catch (IOException ioex)
-{throw (ioex);}
-finally
-{doc2.Close();}
-*/
