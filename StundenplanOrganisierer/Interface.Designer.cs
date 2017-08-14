@@ -42,6 +42,7 @@
             this.trackbarlabel = new System.Windows.Forms.Label();
             this.positionlabel = new System.Windows.Forms.Label();
             this.percentlabel = new System.Windows.Forms.Label();
+            this.OverrideBox = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.Position)).BeginInit();
             this.SuspendLayout();
             // 
@@ -124,12 +125,12 @@
             // trackbarlabel
             // 
             this.trackbarlabel.AutoSize = true;
-            this.trackbarlabel.Location = new System.Drawing.Point(422, 297);
+            this.trackbarlabel.Location = new System.Drawing.Point(501, 297);
             this.trackbarlabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.trackbarlabel.Name = "trackbarlabel";
-            this.trackbarlabel.Size = new System.Drawing.Size(296, 13);
+            this.trackbarlabel.Size = new System.Drawing.Size(145, 13);
             this.trackbarlabel.TabIndex = 8;
-            this.trackbarlabel.Text = "Hier kann die ungefähre Position der Tags festgelegt werden:";
+            this.trackbarlabel.Text = "Ungefähre Position der Tags:";
             // 
             // positionlabel
             // 
@@ -155,12 +156,24 @@
             this.percentlabel.TabIndex = 10;
             this.percentlabel.Text = "%";
             // 
+            // OverrideBox
+            // 
+            this.OverrideBox.AutoSize = true;
+            this.OverrideBox.Location = new System.Drawing.Point(335, 297);
+            this.OverrideBox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.OverrideBox.Name = "OverrideBox";
+            this.OverrideBox.Size = new System.Drawing.Size(72, 17);
+            this.OverrideBox.TabIndex = 11;
+            this.OverrideBox.Text = "Override?";
+            this.OverrideBox.UseVisualStyleBackColor = true;
+            // 
             // StuPlOrgInterface
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(734, 398);
+            this.Controls.Add(this.OverrideBox);
             this.Controls.Add(this.percentlabel);
             this.Controls.Add(this.positionlabel);
             this.Controls.Add(this.trackbarlabel);
@@ -172,7 +185,7 @@
             this.Controls.Add(this.Pfad);
             this.Controls.Add(this.button1);
             this.Name = "StuPlOrgInterface";
-            this.Text = "Stundenplan Organiserer v0.2";
+            this.Text = "Stundenplan Organiserer v0.3";
             ((System.ComponentModel.ISupportInitialize)(this.Position)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -193,6 +206,7 @@
         private System.Windows.Forms.Label trackbarlabel;
         private System.Windows.Forms.Label positionlabel;
         private System.Windows.Forms.Label percentlabel;
+        private System.Windows.Forms.CheckBox OverrideBox;
     }
 }
 

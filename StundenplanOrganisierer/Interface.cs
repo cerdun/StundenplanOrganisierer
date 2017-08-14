@@ -38,7 +38,7 @@ namespace StundenplanOrganisierer
                     }
                 }
             }
-            catch (FileNotFoundException e)
+            catch (FileNotFoundException)
             {
                 Fehlerfenster fenster = new Fehlerfenster("Es wurde keine Konfiguration gefunden\r\n\r\nEs sollte sich eine Konfiguration.txt neben der .exe befinden!\r\n\r\nAndernfalls wird die Standardkonfiguration verwendet");
                 fenster.Show();
@@ -52,10 +52,10 @@ namespace StundenplanOrganisierer
             toolTip1.SetToolTip(DB, "Tags und Klarnamen getrennt durch ein Leerzeichen\r\nDie Richtungen im Hauptstudium sind durch '+' gekennzeichnet, die Spezialisierungen mit '#'");
             toolTip1.SetToolTip(load, "lädt eine neue PDF");
             toolTip1.SetToolTip(Pfad, "Ort der aktuellen PDF");
+            toolTip1.SetToolTip(OverrideBox, "Sollen PDFs, die bereits existieren überschrieben oder ergänzt werden?");
 
-            //Loadpdf();
-
-            Pfad.Text = @"C:\Users\Anke\Desktop\C# Stuff\Neuer Ordner\2s_ges.pdf";
+            Loadpdf();
+            
             this.Activate();
         }
 
@@ -70,7 +70,6 @@ namespace StundenplanOrganisierer
             foreach (var group in names)
             {
                 Directory.CreateDirectory(path + "/" + group);
-
             }
             Directory.CreateDirectory(path + "/" + "Unzugeordnet");
         }
@@ -82,10 +81,7 @@ namespace StundenplanOrganisierer
         /// <param name="path">Zielpfad</param>
         public void CreateFolder(string name, string path)
         {
-            if (!Directory.Exists(path + "/" + name))
-            {
-                Directory.CreateDirectory(path + "/" + name);
-            }
+            Directory.CreateDirectory(path + "/" + name);
         }
 
         /// <summary>
@@ -96,13 +92,23 @@ namespace StundenplanOrganisierer
         /// <param name="outputPdf">Zielpfad der Kopie</param>
         public void SaveToPdf(string inputPdf, int pageSelection, string outputPdf)
         {
-            var doc = new Document(PageSize.A4.Rotate());
-            PdfWriter.GetInstance(doc, new FileStream(outputPdf, FileMode.Create));
+            PdfReader reader = new PdfReader(inputPdf);
+            PdfReader reader1 = new PdfReader(outputPdf);
+            Document doc = new Document(reader.GetPageSizeWithRotation(1));
+            PdfCopy copy = new PdfCopy(doc, new FileStream(outputPdf+"1",FileMode.Append));
             doc.Open();
-            Chunk c11 = new Chunk(inputPdf);
-            doc.Add(new Paragraph(c11));
+            for (int i = 1; i <= reader1.NumberOfPages; i++)
+            {
+                copy.AddPage(copy.GetImportedPage(reader1, i));
+            }
+            copy.AddPage(copy.GetImportedPage(reader, pageSelection));
+            reader.Close();
+            reader1.Close();
             doc.Close();
+            File.Delete(outputPdf);
+            File.Move(outputPdf + "1", outputPdf);
         }
+
         /// <summary>
         /// Speichert bestimmte Seiten einer Pdf in eine Kopie
         /// </summary>
@@ -111,13 +117,16 @@ namespace StundenplanOrganisierer
         /// <param name="outputPdf">Zielpfad der Kopie</param>
         public void CopySite(string inputPdf, int pageSelection, string outputPdf)
         {
+            if (Directory.GetFiles(outputPdf.Substring(0, outputPdf.LastIndexOf("\\"))).Contains(outputPdf)
+                &&!OverrideBox.Checked)
+            {
+                Console.WriteLine("+++++++++++++++++++++++++++++++++++++++++++++HÄ?");
+                SaveToPdf(inputPdf, pageSelection, outputPdf);
+                return;
+            }
+
             PdfReader reader = new PdfReader(inputPdf);
             FileStream fs = new FileStream(outputPdf, FileMode.Create);
-            if (Directory.GetFiles(outputPdf.Substring(0, outputPdf.LastIndexOf("/"))).
-                Contains(outputPdf.Substring(outputPdf.LastIndexOf("/")+1, outputPdf.Length - outputPdf.LastIndexOf("/")-1)))
-            {
-                Console.WriteLine("HÄ?");
-            }
             Document doc = new Document(reader.GetPageSizeWithRotation(1));
             PdfCopy copy = new PdfCopy(doc, fs);
             doc.Open();
@@ -145,9 +154,11 @@ namespace StundenplanOrganisierer
         /// </summary>
         private void Loadpdf ()
         {
-            OpenFileDialog openFileDialog1 = new OpenFileDialog();
-            openFileDialog1.Filter = "Pdf Files|*.pdf";
-            openFileDialog1.Title = "Select a Pdf File";
+            OpenFileDialog openFileDialog1 = new OpenFileDialog()
+            {
+                Filter = "Pdf Files|*.pdf",
+                Title = "Select a Pdf File"
+            };
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 StreamReader sr = new StreamReader(openFileDialog1.FileName);
@@ -173,15 +184,6 @@ namespace StundenplanOrganisierer
             string Source = loc.Substring(loc.LastIndexOf(@"\")+1); //bestimmt den Pfad, an dem die Pdf liegt
             loc = loc.Remove(loc.LastIndexOf(@"\")+1);      //bestimmt den Namen der Pdf
 
-            
-            List<string> tags = new List<string>();     //Grundstudium
-            List<string> groups = new List<string>();
-            List<string> speztags = new List<string>();     //Spezialisierungen
-            List<string> spezgroups = new List<string>();
-            List<string> sortspeztags = new List<string>();     //Hauptstudium
-            List<string> sortspezgroups = new List<string>();
-            //ja, das musste sein, besser wäre eine Linked List 
-
             Dictionary<string, string> haupt = new Dictionary<string, string>();
             Dictionary<string, string> grund = new Dictionary<string, string>();
             Dictionary<string, string> spez = new Dictionary<string, string>();
@@ -198,10 +200,6 @@ namespace StundenplanOrganisierer
 
                     if (lin.StartsWith("#"))
                     {
-                        speztags.Add(lin.Substring(1, lin.IndexOf(' ')-1));           //holt sich den Tag
-                        spezgroups.Add(lin.Substring(lin.IndexOf(' ') + 1));          //holt sich die Bezeichnung
-
-                        
                         try
                         {
                             spez.Add(lin.Substring(1, lin.IndexOf(' ')-1), lin.Substring(lin.IndexOf(' ') + 1));
@@ -213,9 +211,6 @@ namespace StundenplanOrganisierer
                     }
                     else if (lin.StartsWith("+"))
                     {
-                        sortspeztags.Add(lin.Substring(1, lin.IndexOf(' ')-1));           //holt sich den Tag
-                        sortspezgroups.Add(lin.Substring(lin.IndexOf(' ') + 1));          //holt sich die Bezeichnung
-
                         try
                         {
                             haupt.Add(lin.Substring(1, lin.IndexOf(' ') - 1), lin.Substring(lin.IndexOf(' ') + 1));
@@ -227,9 +222,6 @@ namespace StundenplanOrganisierer
                     }
                     else
                     {
-                        tags.Add(lin.Substring(0, lin.IndexOf(' ')));           //holt sich den Tag
-                        groups.Add(lin.Substring(lin.IndexOf(' ') + 1));          //holt sich die Bezeichnung
-
                         try
                         {
                             grund.Add(lin.Substring(0, lin.IndexOf(' ')), lin.Substring(lin.IndexOf(' ') + 1));
@@ -253,9 +245,10 @@ namespace StundenplanOrganisierer
                 else if (y.Length == 0) return 1;
                 else return y.Length.CompareTo(x.Length);
             });
+            Console.WriteLine("Spezialisierungen:");
             foreach (var item in spezlist)
             {
-                Console.WriteLine("spez: "+item);
+                Console.Write(" "+item);
             }
 
             grundlist.Sort(delegate (string x, string y) {
@@ -264,9 +257,10 @@ namespace StundenplanOrganisierer
                 else if (y.Length == 0) return 1;
                 else return y.Length.CompareTo(x.Length);
             });
+            Console.WriteLine("\r\nGrundstudium:");
             foreach (var item in grundlist)
             {
-                Console.WriteLine("grund: "+item);
+                Console.Write(" "+item);
             }
 
             hauptlist.Sort(delegate (string x, string y) {
@@ -275,11 +269,12 @@ namespace StundenplanOrganisierer
                 else if (y.Length == 0) return 1;
                 else return y.Length.CompareTo(x.Length);
             });
+            Console.WriteLine("\r\nHauptstudium:");
             foreach (var item in hauptlist)
             {
-                Console.WriteLine("haupt: "+item);
+                Console.Write(" "+item);
             }
-
+            Console.WriteLine("\r\n----------------------------------------------------");
             string output = string.Empty;
 
             CreateFolder("Unzugeordnet", loc);
@@ -311,27 +306,17 @@ namespace StundenplanOrganisierer
 
                 bool success = false;
 
-                foreach (var tag in tags)       //überprüft auf die Grundstudiums Tags
+                foreach (var tag in grundlist)       //überprüft auf die Grundstudiums Tags
                 {
-                    int tagindex = currentText.IndexOf(tag);
+                    int tagindex = clear.IndexOf(tag);
                     if (tagindex!=-1)       //enthält tag
                     {
                         Console.WriteLine("GRUNDSTUDIUM");
-                        string a = currentText.Substring(tagindex - 1, currentText.IndexOf(@"EMC", tagindex) - tagindex + 1);   //String, der den Tag und den folgenden Block übernimmt
-                        string c = "";
-                        while (a.Contains("(") &&( a.Contains(")Tj")||a.Contains(")]TJ")))      //solange chunks vorhanden sind
-                        {
-                            int aufind = a.IndexOf("(");
-                            int zuind = a.IndexOf(")", aufind);     //nimmt sich das auf "(" folgende ")"
-                            c = c + a.Substring(aufind + 1, zuind - aufind - 1);        //nimmt sich den ersten Chunk -> (...)
-                            a = a.Remove(0, zuind + 1);        // löscht den ersten chunk
-                        }
-                        Console.WriteLine(c);
+                        string plaintext = clear.Substring(tagindex, clear.IndexOf(" ", tagindex) - tagindex);   //String, der den Tag und den folgenden Block übernimmt
 
-                        int id = tags.IndexOf(tag);
-                        output = loc + groups[id] + "/" + c + ".pdf";
-                        
-                        CreateFolder(groups[id], loc);
+                        int id = grundlist.IndexOf(tag);
+                        CreateFolder(grund[tag], loc);
+                        output = loc + grund[tag] + "\\" + plaintext + ".pdf";
                         success = true;
                     }
                 }
@@ -344,10 +329,9 @@ namespace StundenplanOrganisierer
                         Console.WriteLine("HAUPTSTUDIUM");
                         string plaintext = clear.Substring(tagindex, clear.IndexOf(" ",tagindex)-tagindex);   //String, der den Tag und den folgenden Block übernimmt
                         
-
                         int id = hauptlist.IndexOf(tag);
                         CreateFolder(haupt[tag], loc);
-                        output = loc + haupt[tag] + "/" + plaintext + ".pdf";
+                        output = loc + haupt[tag] + "\\" + plaintext + ".pdf";
                         
                         foreach (var speztag in spezlist)
                         {
@@ -355,8 +339,8 @@ namespace StundenplanOrganisierer
                             {
                                 Console.WriteLine("SPEZIALISIERUNG");
                                 Console.WriteLine(speztag);
-                                CreateFolder(spez[speztag], loc+"/"+ haupt[tag]);
-                                output = loc + haupt[tag] + "/" + spezgroups[speztags.IndexOf(speztag)] + "/" + plaintext + ".pdf";
+                                CreateFolder(spez[speztag], loc+ "\\" + haupt[tag]);
+                                output = loc + haupt[tag] + "\\" + spez[speztag] + "\\" + plaintext + ".pdf";
                                 break;
                             }
                         }
@@ -368,7 +352,7 @@ namespace StundenplanOrganisierer
 
                 if (success == false)       //unzugeordnete Dateien
                 {
-                    output = loc + "Unzugeordnet/" + "Plan" + aktuelleSeite.ToString("D2") + ".pdf";
+                    output = loc + "Unzugeordnet\\" + "Plan" + aktuelleSeite.ToString("D2") + ".pdf";
                 }
 
                 CopySite(loc + Source, aktuelleSeite, output);      //speichert die fertige Datei
