@@ -53,6 +53,7 @@
             this.opendesti = new System.Windows.Forms.Button();
             this.rename = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.Position)).BeginInit();
             this.SuspendLayout();
             // 
@@ -270,12 +271,24 @@
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
+            // label1
+            // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(555, 338);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(164, 26);
+            this.label1.TabIndex = 21;
+            this.label1.Text = "läuft mit iTextSharp-LGPL.4.1.6\r\nLizenz: http://itextpdf.com/AGPL";
+            this.label1.Click += new System.EventHandler(this.label1_Click);
+            // 
             // StuPlOrgInterface
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(734, 469);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.rename);
             this.Controls.Add(this.opendesti);
@@ -297,7 +310,7 @@
             this.Controls.Add(this.Pfad);
             this.Controls.Add(this.button1);
             this.Name = "StuPlOrgInterface";
-            this.Text = "Stundenplan Organiserer v1.1";
+            this.Text = "Stundenplan Organiserer v1.2";
             ((System.ComponentModel.ISupportInitialize)(this.Position)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -329,6 +342,7 @@
         private System.Windows.Forms.Button opendesti;
         private System.Windows.Forms.Button rename;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Label label1;
     }
 }
 

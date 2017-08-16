@@ -484,5 +484,17 @@ namespace StundenplanOrganisierer
                 MessageBox.Show("Etwas ist schief gelaufen: "+argh);
             }
         }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Process.Start("http://itextpdf.com/AGPL");
+            }
+            catch (Exception gh)
+            {
+                MessageBox.Show("Etwas ist schief gelaufen: " + gh);
+            }
+        }
     }
 }
