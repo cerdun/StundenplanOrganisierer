@@ -52,6 +52,7 @@
             this.snippet = new System.Windows.Forms.Button();
             this.opendesti = new System.Windows.Forms.Button();
             this.rename = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.Position)).BeginInit();
             this.SuspendLayout();
             // 
@@ -245,19 +246,29 @@
             this.opendesti.Name = "opendesti";
             this.opendesti.Size = new System.Drawing.Size(137, 23);
             this.opendesti.TabIndex = 18;
-            this.opendesti.Text = "Ausgabeordner";
+            this.opendesti.Text = "Ausgabeordner öffnen";
             this.opendesti.UseVisualStyleBackColor = true;
             this.opendesti.Click += new System.EventHandler(this.opendesti_Click);
             // 
             // rename
             // 
-            this.rename.Location = new System.Drawing.Point(338, 174);
+            this.rename.Location = new System.Drawing.Point(337, 174);
             this.rename.Name = "rename";
-            this.rename.Size = new System.Drawing.Size(136, 23);
+            this.rename.Size = new System.Drawing.Size(137, 23);
             this.rename.TabIndex = 19;
-            this.rename.Text = "Umbenennen";
+            this.rename.Text = "Ausgabe umbenennen";
             this.rename.UseVisualStyleBackColor = true;
             this.rename.Click += new System.EventHandler(this.rename_Click);
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(337, 203);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(137, 23);
+            this.button2.TabIndex = 20;
+            this.button2.Text = "Konfiguration laden";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // StuPlOrgInterface
             // 
@@ -265,6 +276,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(734, 469);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.rename);
             this.Controls.Add(this.opendesti);
             this.Controls.Add(this.snippet);
@@ -285,7 +297,7 @@
             this.Controls.Add(this.Pfad);
             this.Controls.Add(this.button1);
             this.Name = "StuPlOrgInterface";
-            this.Text = "Stundenplan Organiserer v1.0";
+            this.Text = "Stundenplan Organiserer v1.1";
             ((System.ComponentModel.ISupportInitialize)(this.Position)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -316,6 +328,7 @@
         private System.Windows.Forms.Button snippet;
         private System.Windows.Forms.Button opendesti;
         private System.Windows.Forms.Button rename;
+        private System.Windows.Forms.Button button2;
     }
 }
 

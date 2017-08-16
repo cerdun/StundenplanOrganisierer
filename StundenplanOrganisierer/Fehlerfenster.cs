@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace StundenplanOrganisierer
 {
-    public partial class Fehlerfenster : Form
+    public partial class Fehlerfenster : Form           //nur ein kleines Experiment, einfacher mit MessageBox
     {
         public Fehlerfenster(string fehler)
         {

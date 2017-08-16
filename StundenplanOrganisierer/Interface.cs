@@ -27,7 +27,7 @@ namespace StundenplanOrganisierer
 
             try
             {
-                StreamReader file = new StreamReader(@"Konfiguration.txt");
+                StreamReader file = new StreamReader(@"Konfiguration.txt");     //liest Konfig aus
                 string line;
                 DB.Text = "";
                 while ((line = file.ReadLine()) != null)
@@ -41,7 +41,7 @@ namespace StundenplanOrganisierer
             catch (FileNotFoundException)
             {
                 Fehlerfenster fenster = new Fehlerfenster("Es wurde keine Konfiguration gefunden\r\n\r\nEs sollte sich eine Konfiguration.txt neben der .exe befinden!\r\n\r\nAndernfalls wird die Standardkonfiguration verwendet");
-                fenster.Show();
+                fenster.Show();     
             }
 
             ToolTip toolTip1 = new ToolTip();           //Tooltip Stuff
@@ -59,7 +59,8 @@ namespace StundenplanOrganisierer
             toolTip1.SetToolTip(snippet, "Zeigt den ausgewählten Ausschnitt von der ersten Seite der ausgewählten Pdf an");
             toolTip1.SetToolTip(opendesti, "Öffnet den Zielordner im Explorer");
 
-            Loadpdf();
+            Pfad.Text = Loadpdf();          //liest beim starten der anwendung den pfad einer pdf
+            ziel.Text = Pfad.Text.Substring(0, Pfad.Text.LastIndexOf(@"\"));
 
             this.Activate();
         }
@@ -77,8 +78,6 @@ namespace StundenplanOrganisierer
             };
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                StreamReader sr = new StreamReader(openFileDialog1.FileName);
-                sr.Close();
                 return openFileDialog1.FileName;
             }
             return ""; 
@@ -95,7 +94,7 @@ namespace StundenplanOrganisierer
             {
                 string time = DateTime.Now.ToString().Replace(" ", "_").Replace(":", ".");
                 Console.WriteLine(time);
-                if (checkBoxAllPdf.Checked)
+                if (checkBoxAllPdf.Checked)         //für alle pdfs im ordner?
                 {
                     foreach (var file in Directory.GetFiles(Pfad.Text.Substring(0, Pfad.Text.LastIndexOf(@"\") + 1)))
                     {
@@ -106,11 +105,11 @@ namespace StundenplanOrganisierer
                     }
                     return;
                 }
-                zerteilen(Pfad.Text, time);
+                zerteilen(Pfad.Text, time);     //für nur eine pdf
             }
-            catch (Exception)
+            catch (Exception baum)
             {
-                MessageBox.Show("Etwas ist schief gelaufen");
+                MessageBox.Show("Etwas ist schief gelaufen: "+baum);
             }
         }
 
@@ -122,7 +121,6 @@ namespace StundenplanOrganisierer
         private void Load_Click(object sender, EventArgs e)
         {
             Pfad.Text = Loadpdf();
-            ziel.Text = Pfad.Text.Substring(0, Pfad.Text.LastIndexOf(@"\"));
         }
 
         /// <summary>
@@ -328,8 +326,8 @@ namespace StundenplanOrganisierer
                         string group = plaintext.Remove(0, plaintext.LastIndexOf("-") + 1);
                         string semester = "semester" + plaintext.ElementAt(plaintext.IndexOfAny(new char[] { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' })).ToString();
                         _F.CreateFolders(semester, loc);
-                        _F.CreateFolders(grund[tag], loc + "\\" + semester);
-                        output = loc + semester + "\\" + grund[tag] + "\\" + group + ".pdf";
+                        _F.CreateFolders(haupt[tag], loc + "\\" + semester);
+                        output = loc + semester + "\\" + haupt[tag] + "\\" + group + ".pdf";
 
                         // Möglichkeit die Spezialisierungen in eigene Ordner zu speichern
                         /*
@@ -365,6 +363,11 @@ namespace StundenplanOrganisierer
             DB.ReadOnly = false;        //gibt Datenbank wieder frei
         }
 
+        /// <summary>
+        /// Gibt den ausgewählten ausschnitt aus
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void snippet_Click(object sender, EventArgs e)
         {
             try
@@ -375,9 +378,9 @@ namespace StundenplanOrganisierer
 
                 MessageBox.Show(clear);
             }
-            catch (Exception)
+            catch (Exception exc)
             {
-                MessageBox.Show("Etwas ist schief gelaufen");
+                MessageBox.Show("Etwas ist schief gelaufen: "+exc);
             }
         }
 
@@ -392,9 +395,9 @@ namespace StundenplanOrganisierer
             {
                 Process.Start("explorer.exe", ziel.Text);           //einziger Grund, warum System.Diagnostics genutzt wird
             }
-            catch (Exception)
+            catch (Exception abc)
             {
-                MessageBox.Show("Etwas ist schief gelaufen");
+                MessageBox.Show("Etwas ist schief gelaufen: " +abc);
             }
         }
 
@@ -439,9 +442,46 @@ namespace StundenplanOrganisierer
                 }
                 Directory.Move(target, loc + "\\" + sem + year);
             }
-            catch (Exception)
+            catch (Exception xy)
             {
-                MessageBox.Show("Etwas ist schief gelaufen");
+                MessageBox.Show("Etwas ist schief gelaufen: "+xy);
+            }
+        }
+
+
+        /// <summary>
+        /// lädte eine andere konfig
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button2_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string desti="";
+                OpenFileDialog openFileDialog1 = new OpenFileDialog()
+                {
+                    Filter = "txt Files|*.txt",
+                    Title = "Select a txt File"
+                };
+                if (openFileDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    desti= openFileDialog1.FileName;
+                }
+                StreamReader file = new StreamReader(desti);     //liest Konfig aus
+                string line = "";
+                DB.Text = "";
+                while ((line = file.ReadLine()) != null)
+                {
+                    if (!line.StartsWith("##") && line.Length != 0 && line.Contains(" "))
+                    {
+                        DB.Text = DB.Text + line + "\r\n";
+                    }
+                }
+            }
+            catch (Exception argh)
+            {
+                MessageBox.Show("Etwas ist schief gelaufen: "+argh);
             }
         }
     }

@@ -104,6 +104,13 @@ namespace StundenplanOrganisierer
             File.Move(outputPdf + "1", outputPdf);
         }
 
+
+        /// <summary>
+        /// räumt einen string auf
+        /// </summary>
+        /// <param name="currentText">auszuwertender string</param>
+        /// <param name="position">zu betrachtender Bereich</param>
+        /// <returns>string nur mit inhalt der einzelnen chuncks</returns>
         public string ClearText(string currentText, string position)
         {
             string part = currentText.Substring(currentText.Length / 100 * Convert.ToInt32(position.Substring(0, position.IndexOf("-"))),
