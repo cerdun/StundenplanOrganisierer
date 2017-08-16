@@ -1,0 +1,55 @@
+## Hier können die Tags (Abkürzungen) und ausgeschriebenen Studienrichtungen eingetragen werden, getrennt durch " " z.B "DBM Maschinenbau"
+## Linux zuliebe bitte auf " " im Klarnamen verzichten
+## "##" und leere Zeilen werden vom Programm ignoriert
+
+## Hier stehen die Richtungen im Grundstudium/ohne Spezialisierung
+DBM mb
+DBW ww
+DBV vnt
+
+## Hier stehen die Richtungen im Hauptstudium, jeweils beginnend mit einem "+"
++DMB mb
++BMB mb
++DWW ww
++BWW ww
++DVN vnt
++BVN vnt
+##Doppeldiplom:
++DDM ddp
+##Textil Master:
++MTK tuk
+
+##Hier stehen die Spezialisierungen im Hauptstudium, jeweils beginnend mit einem "#"
+#AKM AllgemeinerUndKonstruktiverMaschinenbau
+#ET Energietechnik
+#KS Kraftfahrzeug-UndSchienfahrzeugtechnik
+#LB Leichtbau
+#LRT Luft-UndRaumfahrttechnik
+#PT Produktionstechnik
+#SM SimulationsmethodenDesMaschinenbaus
+#VTM Verarbeitungsmaschinen-UndTextimaschinenbau
+#BV Bioverfahrenstechnik
+#CT Chemie-Ingenieurwesen
+#HF Holz-UndFaserwerkstofftechnik
+#LT Lebensmitteltechnik
+#VT AllgemeineVerfahrenstechnik
+
+##Doppeldiplom:
+#EPT Produktionstechnik
+#ESM Simulationsmethoden
+#EAK AllgemeinerUndKonstruktiverMaschinenbau
+
+##Aufbaustudium:
+#ACT Chemie-Ingenieurtechnik
+#AVT AllgemeineVerfahrenstechnik
+#ABV Bioverfahrenstechnik
+#ALT Lebensmitteltechnik
+#AHF Holz-undFaserwerkstofftechnik
+#APT Produktionstechnik
+#AET Energietechnik
+#AAK AllgemeinerUndKonstruktiverMaschinenbau
+#ALB Leichtbau
+#ASM Simulationsmethoden
+#AKS Kraftfahrzeug-UndSchienfahrzeugtechnik
+#ALR Luft-UndRaumfahrttechnik
+#AVT Verarbeitungsmaschinen-UndTextimaschinenbau
